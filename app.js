@@ -47,7 +47,7 @@ document.getElementById('patientForm').addEventListener('submit', function(event
     };
 
     // Enviar los datos usando Fetch API
-    fetch('https://back-end-672.onrender.com/patient', {
+    fetch('https://back-end-672.onrender.com', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
