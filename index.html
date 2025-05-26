@@ -4,117 +4,200 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Pacientes</title>
+    <!-- SweetAlert2 para notificaciones -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        /* Existing styles remain the same */
-        .sr-only {
-            position: absolute;
-            width: 1px;
-            height: 1px;
-            padding: 0;
-            margin: -1px;
-            overflow: hidden;
-            clip: rect(0, 0, 0, 0);
-            white-space: nowrap;
-            border-width: 0;
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .contenedor {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        
+        form {
+            width: 100%;
+        }
+        
+        .grupo-formulario {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+        
+        .campo-requerido::after {
+            content: " *";
+            color: #e74c3c;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 600px) {
+            .contenedor {
+                padding: 20px;
+            }
+            
+            input, select, button {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
-    <!-- Removed aria-hidden from main and all ancestors -->
-    <main>
-        <div class="contenedor">
-            <h1>Registro de Paciente</h1>
-            <form id="patientForm" aria-label="Formulario de registro de paciente">
-                <fieldset>
-                    <legend class="sr-only">Información personal</legend>
-                    
-                    <div class="grupo-formulario">
-                        <label for="name" class="campo-requerido">Nombre</label>
-                        <input type="text" id="name" name="name" required aria-required="true">
-                    </div>
-                    
-                    <div class="grupo-formulario">
-                        <label for="familyName" class="campo-requerido">Apellido</label>
-                        <input type="text" id="familyName" name="familyName" required aria-required="true">
-                    </div>
-                    
-                    <div class="grupo-formulario">
-                        <label for="gender" class="campo-requerido">Género</label>
-                        <select id="gender" name="gender" required aria-required="true">
-                            <option value="">Seleccione una opción</option>
-                            <option value="male">Masculino</option>
-                            <option value="female">Femenino</option>
-                            <option value="other">Otro</option>
-                            <option value="unknown">Desconocido</option>
-                        </select>
-                    </div>
-                    
-                    <div class="grupo-formulario">
-                        <label for="birthDate" class="campo-requerido">Fecha de Nacimiento</label>
-                        <input type="date" id="birthDate" name="birthDate" required aria-required="true">
-                    </div>
-                </fieldset>
-
-                <fieldset>
-                    <legend class="sr-only">Información de identificación</legend>
-                    
-                    <div class="grupo-formulario">
-                        <label for="identifierSystem" class="campo-requerido">Tipo de Documento</label>
-                        <select id="identifierSystem" name="identifierSystem" required aria-required="true">
-                            <option value="">Seleccione una opción</option>
-                            <option value="http://cedula">Cédula de Ciudadanía</option>
-                            <option value="http://pasaporte">Pasaporte</option>
-                            <option value="http://tarjeta-identidad">Tarjeta de Identidad</option>
-                        </select>
-                    </div>
-                    
-                    <div class="grupo-formulario">
-                        <label for="identifierValue" class="campo-requerido">Número de Documento</label>
-                        <input type="text" id="identifierValue" name="identifierValue" required aria-required="true">
-                    </div>
-                </fieldset>
-
-                <fieldset>
-                    <legend class="sr-only">Información de contacto</legend>
-                    
-                    <div class="grupo-formulario">
-                        <label for="cellPhone" class="campo-requerido">Teléfono</label>
-                        <input type="tel" id="cellPhone" name="cellPhone" required aria-required="true">
-                    </div>
-                    
-                    <div class="grupo-formulario">
-                        <label for="email">Correo Electrónico</label>
-                        <input type="email" id="email" name="email" aria-describedby="emailHelp">
-                        <span id="emailHelp" class="sr-only">(Opcional)</span>
-                    </div>
-                    
-                    <div class="grupo-formulario">
-                        <label for="address">Dirección</label>
-                        <input type="text" id="address" name="address" aria-describedby="addressHelp">
-                        <span id="addressHelp" class="sr-only">(Opcional)</span>
-                    </div>
-                    
-                    <div class="grupo-formulario">
-                        <label for="city">Ciudad</label>
-                        <input type="text" id="city" name="city" aria-describedby="cityHelp">
-                        <span id="cityHelp" class="sr-only">(Opcional)</span>
-                    </div>
-                    
-                    <div class="grupo-formulario">
-                        <label for="postalCode">Código Postal</label>
-                        <input type="text" id="postalCode" name="postalCode" aria-describedby="postalHelp">
-                        <span id="postalHelp" class="sr-only">(Opcional)</span>
-                    </div>
-                </fieldset>
-                
-                <button type="submit" aria-label="Registrar nuevo paciente">
-                    <span class="texto-boton">Registrar Paciente</span>
-                </button>
-            </form>
-        </div>
-    </main>
-
+    <div class="contenedor">
+        <h1>Registro de Paciente</h1>
+        <form id="patientForm">
+            <div class="grupo-formulario">
+                <label for="name" class="campo-requerido">Nombre</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="familyName" class="campo-requerido">Apellido</label>
+                <input type="text" id="familyName" name="familyName" required>
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="gender" class="campo-requerido">Género</label>
+                <select id="gender" name="gender" required>
+                    <option value="male">Masculino</option>
+                    <option value="female">Femenino</option>
+                    <option value="other">Otro</option>
+                    <option value="unknown">Desconocido</option>
+                </select>
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="birthDate" class="campo-requerido">Fecha de Nacimiento</label>
+                <input type="date" id="birthDate" name="birthDate" required>
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="identifierSystem" class="campo-requerido">Tipo de Documento</label>
+                <select id="identifierSystem" name="identifierSystem" required>
+                    <option value="http://cedula">Cédula de Ciudadanía</option>
+                    <option value="http://pasaporte">Pasaporte</option>
+                    <option value="http://tarjeta-identidad">Tarjeta de Identidad</option>
+                </select>
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="identifierValue" class="campo-requerido">Número de Documento</label>
+                <input type="text" id="identifierValue" name="identifierValue" required>
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="cellPhone" class="campo-requerido">Teléfono Móvil</label>
+                <input type="tel" id="cellPhone" name="cellPhone" required>
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="email">Correo Electrónico</label>
+                <input type="email" id="email" name="email">
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="address">Dirección</label>
+                <input type="text" id="address" name="address">
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="city">Ciudad</label>
+                <input type="text" id="city" name="city">
+            </div>
+            
+            <div class="grupo-formulario">
+                <label for="postalCode">Código Postal</label>
+                <input type="text" id="postalCode" name="postalCode">
+            </div>
+            
+            <button type="submit">
+                <span class="texto-boton">Registrar Paciente</span>
+            </button>
+        </form>
+    </div>
+    
     <script src="app.js"></script>
 </body>
 </html>
