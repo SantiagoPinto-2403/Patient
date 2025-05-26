@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (patientForm) {
         patientForm.addEventListener('submit', handleFormSubmit);
     } else {
-        console.error('Patient form not found');
+        console.error('Formulario de paciente no encontrado');
     }
 });
 
@@ -45,12 +45,12 @@ async function handleFormSubmit(event) {
             showSuccessAlert(result.patientId);
             form.reset();
         } else {
-            throw new Error(result.message || 'Failed to create patient');
+            throw new Error(result.message || 'Error al crear al paciente');
         }
         
     } catch (error) {
         console.error('Submission error:', error);
-        showAlert('Error', error.message || 'An error occurred during submission', 'error');
+        showAlert('Error', error.message || 'Se produjo un error durante el envío', 'error');
     } finally {
         setButtonLoading(submitBtn, false);
     }
@@ -105,7 +105,7 @@ function validateFormData(formData) {
     if (formData.email && !isValidEmail(formData.email)) {
         return {
             isValid: false,
-            message: 'Please enter a valid email address',
+            message: 'Por favor, introduce una dirección de correo electrónico válida',
             field: document.getElementById('email')
         };
     }
@@ -187,7 +187,7 @@ async function submitPatientData(patient) {
     const data = await response.json();
     
     if (!response.ok) {
-        throw new Error(data.detail || data.message || 'Submission failed');
+        throw new Error(data.detail || data.message || 'Envío fallido');
     }
     
     return {
@@ -204,10 +204,10 @@ async function submitPatientData(patient) {
 function setButtonLoading(button, isLoading) {
     if (isLoading) {
         button.disabled = true;
-        button.innerHTML = '<span class="spinner"></span> Processing...';
+        button.innerHTML = '<span class="spinner"></span> Procesando...';
     } else {
         button.disabled = false;
-        button.textContent = 'Register Patient';
+        button.textContent = 'Registrar paciente';
     }
 }
 
@@ -227,20 +227,20 @@ function showAlert(title, message, type = 'info') {
 
 function showDuplicateAlert(result) {
     const matchType = result.matchType === 'identifier' 
-        ? 'ID number' 
-        : 'name and birth date';
+        ? 'Número de identificación' 
+        : 'Nombres y Fecha de Nacimiento';
     
     showAlert(
-        'Patient Already Exists',
-        `A patient with matching ${matchType} already exists.\n\nExisting Patient ID: ${result.existingId}`,
-        'warning'
+        'El paciente ya existe',
+        `Ya existe un paciente con coincidencia ${matchType}.\n\nIdentificación del paciente existente: ${result.existingId}`,
+        'awarning'
     );
 }
 
 function showSuccessAlert(patientId) {
     showAlert(
-        'Registration Successful',
-        `Patient registered successfully!\n\nPatient ID: ${patientId}`,
+        'Registro exitoso',
+        `¡Paciente registrado con éxito!\n\nIdentificación del paciente: ${patientId}`,
         'success'
     );
 }
