@@ -27,7 +27,6 @@
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 20px;
         }
         form {
             width: 100%;
@@ -35,116 +34,83 @@
         label {
             font-weight: bold;
             display: block;
-            margin-top: 15px;
+            margin-top: 10px;
         }
         input, select {
             width: 95%;
-            padding: 10px;
+            padding: 8px;
             margin-top: 5px;
-            border: 1px solid #ddd;
+            border: 1px solid #ccc;
             border-radius: 5px;
-            font-size: 16px;
         }
         button {
             width: 100%;
-            padding: 12px;
+            padding: 10px;
             background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            margin-top: 20px;
+            margin-top: 15px;
             font-weight: bold;
-            font-size: 16px;
-            transition: background-color 0.3s;
         }
         button:hover {
             background-color: #45a049;
         }
-        button:disabled {
-            background-color: #cccccc;
-            cursor: not-allowed;
-        }
-        #statusMessage {
-            padding: 15px;
-            margin: 20px 0;
-            border-radius: 5px;
-            display: none;
-        }
-        .success {
-            background-color: #dff0d8;
-            color: #3c763d;
-            border: 1px solid #d6e9c6;
-        }
-        .error {
-            background-color: #f2dede;
-            color: #a94442;
-            border: 1px solid #ebccd1;
-        }
-        .warning {
-            background-color: #fcf8e3;
-            color: #8a6d3b;
-            border: 1px solid #faebcc;
-        }
-        .required:after {
-            content: " *";
+        .error-message {
             color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Registro de Paciente</h1>
-        
-        <!-- Status Message Container -->
-        <div id="statusMessage"></div>
-        
         <form id="patientForm">
-            <label for="name" class="required">Nombre:</label>
+            <label for="name">Nombre:</label>
             <input type="text" id="name" name="name" required>
-
-            <label for="familyName" class="required">Apellido:</label>
+            
+            <label for="familyName">Apellido:</label>
             <input type="text" id="familyName" name="familyName" required>
-
-            <label for="gender" class="required">Género:</label>
+            
+            <label for="gender">Género:</label>
             <select id="gender" name="gender" required>
-                <option value="">Seleccione...</option>
                 <option value="male">Masculino</option>
                 <option value="female">Femenino</option>
                 <option value="other">Otro</option>
                 <option value="unknown">Desconocido</option>
             </select>
-
-            <label for="birthDate" class="required">Fecha de Nacimiento:</label>
+            
+            <label for="birthDate">Fecha de Nacimiento:</label>
             <input type="date" id="birthDate" name="birthDate" required>
-
-            <label for="identifierSystem" class="required">Tipo de documento:</label>
+            
+            <label for="identifierSystem">Tipo de documento:</label>
             <select id="identifierSystem" name="identifierSystem" required>
-                <option value="">Seleccione...</option>
                 <option value="http://cedula">Cédula de ciudadanía</option>
                 <option value="http://pasaporte">Pasaporte</option>
                 <option value="http://tarjeta-identidad">Tarjeta de identidad</option>
             </select>
-
-            <label for="identifierValue" class="required">Número de documento:</label>
+            
+            <label for="identifierValue">Número de documento:</label>
             <input type="text" id="identifierValue" name="identifierValue" required>
-
-            <label for="cellPhone" class="required">Teléfono celular:</label>
+            
+            <label for="cellPhone">Teléfono celular:</label>
             <input type="tel" id="cellPhone" name="cellPhone" required>
-
+            
             <label for="email">Correo electrónico:</label>
-            <input type="email" id="email" name="email">
-
+            <input type="email" id="email" name="email" required>
+            
             <label for="address">Dirección:</label>
-            <input type="text" id="address" name="address">
-
+            <input type="text" id="address" name="address" required>
+            
             <label for="city">Ciudad:</label>
-            <input type="text" id="city" name="city">
-
+            <input type="text" id="city" name="city" required>
+            
             <label for="postalCode">Código postal:</label>
-            <input type="text" id="postalCode" name="postalCode">
-
-            <button type="submit" id="submitButton">Registrar Paciente</button>
+            <input type="text" id="postalCode" name="postalCode" required>
+            
+            <button type="submit">Registrar Paciente</button>
         </form>
     </div>
     <script src="app.js"></script>
