@@ -1,12 +1,15 @@
 document.getElementById('patientForm').addEventListener('submit', async function(event) {
     event.preventDefault();
     const submitButton = event.target.querySelector('button[type="submit"]');
+    const errorDisplay = document.getElementById('errorDisplay') || createErrorDisplay();
     
     try {
         // Disable button during processing
         submitButton.disabled = true;
         submitButton.textContent = 'Procesando...';
-        
+        errorDisplay.textContent = '';
+        errorDisplay.style.display = 'none';
+
         // Get form values
         const formData = {
             name: document.getElementById('name').value.trim(),
@@ -61,28 +64,51 @@ document.getElementById('patientForm').addEventListener('submit', async function
             body: JSON.stringify(patient)
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Error del servidor');
-        }
-
         const result = await response.json();
         
+        if (!response.ok) {
+            // Handle HTTP errors (4xx, 5xx)
+            throw new Error(result.message || `Error del servidor (${response.status})`);
+        }
+
+        // Process successful response
         if (result.status === "exists") {
             const matchType = result.matchType === 'identifier' ? 
                 'número de identificación' : 'nombre y fecha de nacimiento';
-            alert(`⚠️ Paciente ya existe (coincidencia por ${matchType})\nID: ${result.existingId}`);
+            showMessage(`⚠️ Paciente ya existe (coincidencia por ${matchType})\nID: ${result.existingId}`, 'warning');
         } else if (result.status === "success") {
-            alert(`✅ Paciente creado exitosamente!\nID: ${result.insertedId}`);
+            showMessage(`✅ Paciente creado exitosamente!\nID: ${result.insertedId}`, 'success');
             document.getElementById('patientForm').reset();
         } else {
-            throw new Error(result.message || 'Error desconocido');
+            throw new Error(result.message || 'Respuesta inesperada del servidor');
         }
     } catch (error) {
         console.error('Error:', error);
-        alert(`❌ Error: ${error.message}`);
+        errorDisplay.textContent = error.message;
+        errorDisplay.style.display = 'block';
+        errorDisplay.scrollIntoView({ behavior: 'smooth' });
     } finally {
         submitButton.disabled = false;
         submitButton.textContent = 'Registrar Paciente';
     }
 });
+
+// Helper functions
+function createErrorDisplay() {
+    const errorDiv = document.createElement('div');
+    errorDiv.id = 'errorDisplay';
+    errorDiv.style.color = 'red';
+    errorDiv.style.margin = '10px 0';
+    errorDiv.style.padding = '10px';
+    errorDiv.style.border = '1px solid red';
+    errorDiv.style.borderRadius = '5px';
+    errorDiv.style.display = 'none';
+    document.getElementById('patientForm').prepend(errorDiv);
+    return errorDiv;
+}
+
+function showMessage(message, type) {
+    const color = type === 'success' ? 'green' : 'orange';
+    const icon = type === 'success' ? '✅' : '⚠️';
+    alert(`${icon} ${message}`);
+}
