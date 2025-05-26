@@ -1,80 +1,120 @@
-document.getElementById('patientForm').addEventListener('submit', async function(event) {
-    event.preventDefault();
+document.addEventListener('DOMContentLoaded', function() {
+    const patientForm = document.getElementById('patientForm');
     
-    // Show loading state
-    const submitBtn = document.querySelector('#patientForm button[type="submit"]');
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = '<span class="spinner"></span> Processing...';
-    
-    try {
-        // 1. Get form values
-        const formData = getFormValues();
-        
-        // 2. Validate required fields
-        if (!validateForm(formData)) {
-            return;
-        }
-        
-        // 3. Build FHIR Patient object
-        const patient = buildFhirPatient(formData);
-        
-        // 4. Check for duplicates
-        const duplicateResult = await checkForDuplicatePatient(patient);
-        if (duplicateResult.isDuplicate) {
-            showDuplicateAlert(duplicateResult);
-            return;
-        }
-        
-        // 5. Create patient
-        const creationResult = await createPatient(patient);
-        handleCreationResult(creationResult);
-        
-    } catch (error) {
-        console.error('Error:', error);
-        showErrorAlert(error.message || 'An unknown error occurred');
-    } finally {
-        // Reset button state
-        submitBtn.disabled = false;
-        submitBtn.textContent = 'Register Patient';
+    if (patientForm) {
+        patientForm.addEventListener('submit', handleFormSubmit);
+    } else {
+        console.error('Patient form not found');
     }
 });
 
-// Helper functions
-function getFormValues() {
-    return {
-        name: document.getElementById('name').value.trim(),
-        familyName: document.getElementById('familyName').value.trim(),
-        gender: document.getElementById('gender').value,
-        birthDate: document.getElementById('birthDate').value,
-        identifierSystem: document.getElementById('identifierSystem').value,
-        identifierValue: document.getElementById('identifierValue').value.trim(),
-        cellPhone: document.getElementById('cellPhone').value.trim(),
-        email: document.getElementById('email').value.trim(),
-        address: document.getElementById('address').value.trim(),
-        city: document.getElementById('city').value.trim(),
-        postalCode: document.getElementById('postalCode').value.trim()
-    };
+// Main form submission handler
+async function handleFormSubmit(event) {
+    event.preventDefault();
+    const form = event.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    
+    try {
+        // Set loading state
+        setButtonLoading(submitBtn, true);
+        
+        // Get and validate form data
+        const formData = getFormValues();
+        const validation = validateFormData(formData);
+        
+        if (!validation.isValid) {
+            showAlert('Validation Error', validation.message, 'error');
+            validation.field?.focus();
+            return;
+        }
+        
+        // Build FHIR patient object
+        const patient = buildFhirPatient(formData);
+        
+        // Check for duplicates
+        const duplicateCheck = await checkForDuplicatePatient(patient);
+        if (duplicateCheck.isDuplicate) {
+            showDuplicateAlert(duplicateCheck);
+            return;
+        }
+        
+        // Submit to backend
+        const result = await submitPatientData(patient);
+        
+        if (result.success) {
+            showSuccessAlert(result.patientId);
+            form.reset();
+        } else {
+            throw new Error(result.message || 'Failed to create patient');
+        }
+        
+    } catch (error) {
+        console.error('Submission error:', error);
+        showAlert('Error', error.message || 'An error occurred during submission', 'error');
+    } finally {
+        setButtonLoading(submitBtn, false);
+    }
 }
 
-function validateForm(formData) {
-    // Check required fields
-    const requiredFields = ['name', 'familyName', 'birthDate', 'identifierValue', 'cellPhone'];
+// =================
+// Helper Functions
+// =================
+
+function getFormValues() {
+    return {
+        name: getValue('name'),
+        familyName: getValue('familyName'),
+        gender: getValue('gender'),
+        birthDate: getValue('birthDate'),
+        identifierSystem: getValue('identifierSystem'),
+        identifierValue: getValue('identifierValue'),
+        cellPhone: getValue('cellPhone'),
+        email: getValue('email'),
+        address: getValue('address'),
+        city: getValue('city'),
+        postalCode: getValue('postalCode')
+    };
+    
+    function getValue(id) {
+        const element = document.getElementById(id);
+        return element ? element.value.trim() : '';
+    }
+}
+
+function validateFormData(formData) {
+    // Required fields validation
+    const requiredFields = [
+        { id: 'name', name: 'First Name' },
+        { id: 'familyName', name: 'Last Name' },
+        { id: 'birthDate', name: 'Date of Birth' },
+        { id: 'identifierValue', name: 'ID Number' },
+        { id: 'cellPhone', name: 'Phone Number' }
+    ];
+    
     for (const field of requiredFields) {
-        if (!formData[field]) {
-            showErrorAlert(`Please fill in all required fields`);
-            document.getElementById(field).focus();
-            return false;
+        if (!formData[field.id]) {
+            return {
+                isValid: false,
+                message: `${field.name} is required`,
+                field: document.getElementById(field.id)
+            };
         }
     }
     
-    // Validate email format if provided
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-        showErrorAlert('Please enter a valid email address');
-        document.getElementById('email').focus();
-        return false;
+    // Email validation
+    if (formData.email && !isValidEmail(formData.email)) {
+        return {
+            isValid: false,
+            message: 'Please enter a valid email address',
+            field: document.getElementById('email')
+        };
     }
     
-    return true;
+    return { isValid: true };
+}
+
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
 function buildFhirPatient(formData) {
@@ -117,18 +157,24 @@ async function checkForDuplicatePatient(patient) {
         });
         
         if (!response.ok) {
-            throw new Error(`Duplicate check failed: ${response.status}`);
+            throw new Error(`Server returned ${response.status}`);
         }
         
-        return await response.json();
+        const data = await response.json();
+        
+        return {
+            isDuplicate: data.isDuplicate || false,
+            matchType: data.matchType || null,
+            existingId: data.existingId || null
+        };
+        
     } catch (error) {
-        console.error('Duplicate check error:', error);
-        // Continue with creation if check fails
+        console.error('Duplicate check failed:', error);
         return { isDuplicate: false };
     }
 }
 
-async function createPatient(patient) {
+async function submitPatientData(patient) {
     const response = await fetch('https://back-end-santiago.onrender.com/patient', {
         method: 'POST',
         headers: { 
@@ -138,58 +184,63 @@ async function createPatient(patient) {
         body: JSON.stringify(patient)
     });
     
+    const data = await response.json();
+    
     if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.detail || 'Failed to create patient');
+        throw new Error(data.detail || data.message || 'Submission failed');
     }
     
-    return await response.json();
+    return {
+        success: data.status === "success",
+        patientId: data.patient_id || data.insertedId,
+        message: data.message
+    };
 }
 
-function showDuplicateAlert(duplicateResult) {
-    const matchType = duplicateResult.matchType === 'identifier' 
+// ==============
+// UI Functions
+// ==============
+
+function setButtonLoading(button, isLoading) {
+    if (isLoading) {
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner"></span> Processing...';
+    } else {
+        button.disabled = false;
+        button.textContent = 'Register Patient';
+    }
+}
+
+function showAlert(title, message, type = 'info') {
+    // Try SweetAlert2 first, fall back to browser alert
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            title: title,
+            text: message,
+            icon: type,
+            confirmButtonText: 'OK'
+        });
+    } else {
+        alert(`${title}\n\n${message}`);
+    }
+}
+
+function showDuplicateAlert(result) {
+    const matchType = result.matchType === 'identifier' 
         ? 'ID number' 
         : 'name and birth date';
     
-    Swal.fire({
-        icon: 'warning',
-        title: 'Patient Already Exists',
-        html: `A patient with matching ${matchType} already exists in the system.<br><br>
-               Existing Patient ID: <strong>${duplicateResult.existingId}</strong>`,
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#3085d6'
-    });
+    showAlert(
+        'Patient Already Exists',
+        `A patient with matching ${matchType} already exists.\n\nExisting Patient ID: ${result.existingId}`,
+        'warning'
+    );
 }
 
-function handleCreationResult(result) {
-    if (result.status === "success") {
-        Swal.fire({
-            icon: 'success',
-            title: 'Patient Created!',
-            html: `Patient registered successfully.<br><br>
-                   Patient ID: <strong>${result.patient_id}</strong>`,
-            confirmButtonText: 'OK',
-            confirmButtonColor: '#3085d6'
-        }).then(() => {
-            document.getElementById('patientForm').reset();
-        });
-    } else if (result.status === "exists") {
-        showDuplicateAlert({
-            isDuplicate: true,
-            matchType: 'identifier',
-            existingId: result.existing_id
-        });
-    } else {
-        throw new Error(result.detail || 'Unknown response from server');
-    }
-}
-
-function showErrorAlert(message) {
-    Swal.fire({
-        icon: 'error',
-        title: 'Error',
-        text: message,
-        confirmButtonText: 'OK',
-        confirmButtonColor: '#d33'
-    });
+function showSuccessAlert(patientId) {
+    showAlert(
+        'Registration Successful',
+        `Patient registered successfully!\n\nPatient ID: ${patientId}`,
+        'success'
+    );
 }
