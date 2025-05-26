@@ -1,14 +1,11 @@
 document.getElementById('patientForm').addEventListener('submit', async function(event) {
     event.preventDefault();
     const submitButton = event.target.querySelector('button[type="submit"]');
-    const errorDisplay = document.getElementById('errorDisplay') || createErrorDisplay();
     
     try {
         // Disable button during processing
         submitButton.disabled = true;
-        submitButton.textContent = 'Procesando...';
-        errorDisplay.textContent = '';
-        errorDisplay.style.display = 'none';
+        submitButton.textContent = 'Processing...';
 
         // Get form values
         const formData = {
@@ -24,11 +21,6 @@ document.getElementById('patientForm').addEventListener('submit', async function
             city: document.getElementById('city').value.trim(),
             postalCode: document.getElementById('postalCode').value.trim()
         };
-
-        // Basic validation
-        if (!formData.name || !formData.familyName || !formData.identifierValue) {
-            throw new Error('Por favor complete todos los campos requeridos');
-        }
 
         // Build FHIR Patient
         const patient = {
@@ -68,47 +60,25 @@ document.getElementById('patientForm').addEventListener('submit', async function
         
         if (!response.ok) {
             // Handle HTTP errors (4xx, 5xx)
-            throw new Error(result.message || `Error del servidor (${response.status})`);
+            throw new Error(result.message || `Server error (${response.status})`);
         }
 
-        // Process successful response
-        if (result.status === "exists") {
-            const matchType = result.matchType === 'identifier' ? 
-                'número de identificación' : 'nombre y fecha de nacimiento';
-            showMessage(`⚠️ Paciente ya existe (coincidencia por ${matchType})\nID: ${result.existingId}`, 'warning');
-        } else if (result.status === "success") {
-            showMessage(`✅ Paciente creado exitosamente!\nID: ${result.insertedId}`, 'success');
+        // Handle successful responses
+        if (result.status === "success") {
+            alert(`✅ Patient created successfully!\nID: ${result.patientId}`);
             document.getElementById('patientForm').reset();
-        } else {
-            throw new Error(result.message || 'Respuesta inesperada del servidor');
+        } 
+        else if (result.status === "exists") {
+            alert(`⚠️ Patient already exists with ID: ${result.patientId}`);
+        }
+        else {
+            throw new Error(result.message || 'Unexpected server response');
         }
     } catch (error) {
         console.error('Error:', error);
-        errorDisplay.textContent = error.message;
-        errorDisplay.style.display = 'block';
-        errorDisplay.scrollIntoView({ behavior: 'smooth' });
+        alert(`❌ Error: ${error.message}`);
     } finally {
         submitButton.disabled = false;
-        submitButton.textContent = 'Registrar Paciente';
+        submitButton.textContent = 'Register Patient';
     }
 });
-
-// Helper functions
-function createErrorDisplay() {
-    const errorDiv = document.createElement('div');
-    errorDiv.id = 'errorDisplay';
-    errorDiv.style.color = 'red';
-    errorDiv.style.margin = '10px 0';
-    errorDiv.style.padding = '10px';
-    errorDiv.style.border = '1px solid red';
-    errorDiv.style.borderRadius = '5px';
-    errorDiv.style.display = 'none';
-    document.getElementById('patientForm').prepend(errorDiv);
-    return errorDiv;
-}
-
-function showMessage(message, type) {
-    const color = type === 'success' ? 'green' : 'orange';
-    const icon = type === 'success' ? '✅' : '⚠️';
-    alert(`${icon} ${message}`);
-}
