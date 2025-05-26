@@ -3,116 +3,201 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Paciente</title>
+    <title>Patient Registration</title>
+    <!-- SweetAlert2 for beautiful alerts -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f7fa;
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
-            padding-top: 20px;
-        }
-        .container {
-            background: white;
             padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
-            margin-top: 20px;
-        }
-        h1 {
-            text-align: center;
             color: #333;
         }
+        
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        
         form {
             width: 100%;
         }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
         label {
-            font-weight: bold;
             display: block;
-            margin-top: 10px;
+            font-weight: 500;
+            margin-bottom: 8px;
+            color: #2c3e50;
         }
+        
         input, select {
-            width: 95%;
-            padding: 8px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            transition: border-color 0.3s;
         }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        
         button {
             width: 100%;
-            padding: 10px;
-            background-color: #4CAF50;
+            padding: 12px;
+            background-color: #3498db;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 500;
             cursor: pointer;
-            margin-top: 15px;
-            font-weight: bold;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
+        
         button:hover {
-            background-color: #45a049;
+            background-color: #2980b9;
         }
-        .error-message {
-            color: red;
-            font-size: 0.9em;
-            margin-top: 5px;
+        
+        button:disabled {
+            background-color: #95a5a6;
+            cursor: not-allowed;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .required-field::after {
+            content: " *";
+            color: #e74c3c;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            input, select, button {
+                padding: 8px 10px;
+                font-size: 14px;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Registro de Paciente</h1>
+        <h1>Patient Registration</h1>
         <form id="patientForm">
-            <label for="name">Nombre:</label>
-            <input type="text" id="name" name="name" required>
+            <div class="form-group">
+                <label for="name" class="required-field">First Name</label>
+                <input type="text" id="name" name="name" required>
+            </div>
             
-            <label for="familyName">Apellido:</label>
-            <input type="text" id="familyName" name="familyName" required>
+            <div class="form-group">
+                <label for="familyName" class="required-field">Last Name</label>
+                <input type="text" id="familyName" name="familyName" required>
+            </div>
             
-            <label for="gender">Género:</label>
-            <select id="gender" name="gender" required>
-                <option value="male">Masculino</option>
-                <option value="female">Femenino</option>
-                <option value="other">Otro</option>
-                <option value="unknown">Desconocido</option>
-            </select>
+            <div class="form-group">
+                <label for="gender" class="required-field">Gender</label>
+                <select id="gender" name="gender" required>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                    <option value="unknown">Unknown</option>
+                </select>
+            </div>
             
-            <label for="birthDate">Fecha de Nacimiento:</label>
-            <input type="date" id="birthDate" name="birthDate" required>
+            <div class="form-group">
+                <label for="birthDate" class="required-field">Date of Birth</label>
+                <input type="date" id="birthDate" name="birthDate" required>
+            </div>
             
-            <label for="identifierSystem">Tipo de documento:</label>
-            <select id="identifierSystem" name="identifierSystem" required>
-                <option value="http://cedula">Cédula de ciudadanía</option>
-                <option value="http://pasaporte">Pasaporte</option>
-                <option value="http://tarjeta-identidad">Tarjeta de identidad</option>
-            </select>
+            <div class="form-group">
+                <label for="identifierSystem" class="required-field">ID Type</label>
+                <select id="identifierSystem" name="identifierSystem" required>
+                    <option value="http://cedula">National ID</option>
+                    <option value="http://pasaporte">Passport</option>
+                    <option value="http://tarjeta-identidad">Identity Card</option>
+                </select>
+            </div>
             
-            <label for="identifierValue">Número de documento:</label>
-            <input type="text" id="identifierValue" name="identifierValue" required>
+            <div class="form-group">
+                <label for="identifierValue" class="required-field">ID Number</label>
+                <input type="text" id="identifierValue" name="identifierValue" required>
+            </div>
             
-            <label for="cellPhone">Teléfono celular:</label>
-            <input type="tel" id="cellPhone" name="cellPhone" required>
+            <div class="form-group">
+                <label for="cellPhone" class="required-field">Phone Number</label>
+                <input type="tel" id="cellPhone" name="cellPhone" required>
+            </div>
             
-            <label for="email">Correo electrónico:</label>
-            <input type="email" id="email" name="email" required>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email">
+            </div>
             
-            <label for="address">Dirección:</label>
-            <input type="text" id="address" name="address" required>
+            <div class="form-group">
+                <label for="address">Address</label>
+                <input type="text" id="address" name="address">
+            </div>
             
-            <label for="city">Ciudad:</label>
-            <input type="text" id="city" name="city" required>
+            <div class="form-group">
+                <label for="city">City</label>
+                <input type="text" id="city" name="city">
+            </div>
             
-            <label for="postalCode">Código postal:</label>
-            <input type="text" id="postalCode" name="postalCode" required>
+            <div class="form-group">
+                <label for="postalCode">Postal Code</label>
+                <input type="text" id="postalCode" name="postalCode">
+            </div>
             
-            <button type="submit">Registrar Paciente</button>
+            <button type="submit">
+                <span class="button-text">Register Patient</span>
+            </button>
         </form>
     </div>
+    
     <script src="app.js"></script>
 </body>
 </html>
