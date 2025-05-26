@@ -1,246 +1,251 @@
+// ======================
+// Controlador del Formulario de Paciente
+// ======================
+
+// Inicializar cuando el DOM esté cargado
 document.addEventListener('DOMContentLoaded', function() {
     const patientForm = document.getElementById('patientForm');
     
     if (patientForm) {
-        patientForm.addEventListener('submit', handleFormSubmit);
+        patientForm.addEventListener('submit', manejarEnvioFormulario);
     } else {
-        console.error('Formulario de paciente no encontrado');
+        console.error('No se encontró el formulario de paciente');
     }
 });
 
-// Main form submission handler
-async function handleFormSubmit(event) {
-    event.preventDefault();
-    const form = event.target;
-    const submitBtn = form.querySelector('button[type="submit"]');
+// Manejador principal del envío del formulario
+async function manejarEnvioFormulario(evento) {
+    evento.preventDefault();
+    const formulario = evento.target;
+    const botonEnviar = formulario.querySelector('button[type="submit"]');
     
     try {
-        // Set loading state
-        setButtonLoading(submitBtn, true);
+        // Establecer estado de carga
+        establecerBotonCargando(botonEnviar, true);
         
-        // Get and validate form data
-        const formData = getFormValues();
-        const validation = validateFormData(formData);
+        // Obtener y validar datos del formulario
+        const datosFormulario = obtenerValoresFormulario();
+        const validacion = validarDatosFormulario(datosFormulario);
         
-        if (!validation.isValid) {
-            showAlert('Validation Error', validation.message, 'error');
-            validation.field?.focus();
+        if (!validacion.esValido) {
+            mostrarAlerta('Error de Validación', validacion.mensaje, 'error');
+            validacion.campo?.focus();
             return;
         }
         
-        // Build FHIR patient object
-        const patient = buildFhirPatient(formData);
+        // Construir objeto Paciente FHIR
+        const paciente = construirPacienteFHIR(datosFormulario);
         
-        // Check for duplicates
-        const duplicateCheck = await checkForDuplicatePatient(patient);
-        if (duplicateCheck.isDuplicate) {
-            showDuplicateAlert(duplicateCheck);
+        // Verificar duplicados
+        const verificacionDuplicado = await verificarPacienteDuplicado(paciente);
+        if (verificacionDuplicado.esDuplicado) {
+            mostrarAlertaDuplicado(verificacionDuplicado);
             return;
         }
         
-        // Submit to backend
-        const result = await submitPatientData(patient);
+        // Enviar al backend
+        const resultado = await enviarDatosPaciente(paciente);
         
-        if (result.success) {
-            showSuccessAlert(result.patientId);
-            form.reset();
+        if (resultado.exito) {
+            mostrarAlertaExito(resultado.idPaciente);
+            formulario.reset();
         } else {
-            throw new Error(result.message || 'Error al crear al paciente');
+            throw new Error(resultado.mensaje || 'Error al crear el paciente');
         }
         
     } catch (error) {
-        console.error('Submission error:', error);
-        showAlert('Error', error.message || 'Se produjo un error durante el envío', 'error');
+        console.error('Error en el envío:', error);
+        mostrarAlerta('Error', error.message || 'Ocurrió un error durante el envío', 'error');
     } finally {
-        setButtonLoading(submitBtn, false);
+        establecerBotonCargando(botonEnviar, false);
     }
 }
 
 // =================
-// Helper Functions
+// Funciones Auxiliares
 // =================
 
-function getFormValues() {
+function obtenerValoresFormulario() {
     return {
-        name: getValue('name'),
-        familyName: getValue('familyName'),
-        gender: getValue('gender'),
-        birthDate: getValue('birthDate'),
-        identifierSystem: getValue('identifierSystem'),
-        identifierValue: getValue('identifierValue'),
-        cellPhone: getValue('cellPhone'),
-        email: getValue('email'),
-        address: getValue('address'),
-        city: getValue('city'),
-        postalCode: getValue('postalCode')
+        nombre: obtenerValor('name'),
+        apellido: obtenerValor('familyName'),
+        genero: obtenerValor('gender'),
+        fechaNacimiento: obtenerValor('birthDate'),
+        tipoIdentificacion: obtenerValor('identifierSystem'),
+        numeroIdentificacion: obtenerValor('identifierValue'),
+        telefono: obtenerValor('cellPhone'),
+        correo: obtenerValor('email'),
+        direccion: obtenerValor('address'),
+        ciudad: obtenerValor('city'),
+        codigoPostal: obtenerValor('postalCode')
     };
     
-    function getValue(id) {
-        const element = document.getElementById(id);
-        return element ? element.value.trim() : '';
+    function obtenerValor(id) {
+        const elemento = document.getElementById(id);
+        return elemento ? elemento.value.trim() : '';
     }
 }
 
-function validateFormData(formData) {
-    // Required fields validation
-    const requiredFields = [
-        { id: 'name', name: 'First Name' },
-        { id: 'familyName', name: 'Last Name' },
-        { id: 'birthDate', name: 'Date of Birth' },
-        { id: 'identifierValue', name: 'ID Number' },
-        { id: 'cellPhone', name: 'Phone Number' }
+function validarDatosFormulario(datosFormulario) {
+    // Validación de campos requeridos
+    const camposRequeridos = [
+        { id: 'name', nombre: 'Nombre' },
+        { id: 'familyName', nombre: 'Apellido' },
+        { id: 'birthDate', nombre: 'Fecha de Nacimiento' },
+        { id: 'identifierValue', nombre: 'Número de Identificación' },
+        { id: 'cellPhone', nombre: 'Teléfono' }
     ];
     
-    for (const field of requiredFields) {
-        if (!formData[field.id]) {
+    for (const campo of camposRequeridos) {
+        if (!datosFormulario[campo.id]) {
             return {
-                isValid: false,
-                message: `${field.name} is required`,
-                field: document.getElementById(field.id)
+                esValido: false,
+                mensaje: `${campo.nombre} es requerido`,
+                campo: document.getElementById(campo.id)
             };
         }
     }
     
-    // Email validation
-    if (formData.email && !isValidEmail(formData.email)) {
+    // Validación de email
+    if (datosFormulario.correo && !esEmailValido(datosFormulario.correo)) {
         return {
-            isValid: false,
-            message: 'Por favor, introduce una dirección de correo electrónico válida',
-            field: document.getElementById('email')
+            esValido: false,
+            mensaje: 'Por favor ingrese un correo electrónico válido',
+            campo: document.getElementById('email')
         };
     }
     
-    return { isValid: true };
+    return { esValido: true };
 }
 
-function isValidEmail(email) {
+function esEmailValido(email) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
-function buildFhirPatient(formData) {
+function construirPacienteFHIR(datosFormulario) {
     return {
         resourceType: "Patient",
         name: [{
             use: "official",
-            given: [formData.name],
-            family: formData.familyName
+            given: [datosFormulario.nombre],
+            family: datosFormulario.apellido
         }],
-        gender: formData.gender,
-        birthDate: formData.birthDate,
+        gender: datosFormulario.genero,
+        birthDate: datosFormulario.fechaNacimiento,
         identifier: [{
-            system: formData.identifierSystem,
-            value: formData.identifierValue
+            system: datosFormulario.tipoIdentificacion,
+            value: datosFormulario.numeroIdentificacion
         }],
         telecom: [
-            { system: "phone", value: formData.cellPhone, use: "home" },
-            { system: "email", value: formData.email, use: "home" }
+            { system: "phone", value: datosFormulario.telefono, use: "home" },
+            { system: "email", value: datosFormulario.correo, use: "home" }
         ],
         address: [{
             use: "home",
-            line: [formData.address],
-            city: formData.city,
-            postalCode: formData.postalCode,
+            line: [datosFormulario.direccion],
+            city: datosFormulario.ciudad,
+            postalCode: datosFormulario.codigoPostal,
             country: "Colombia"
         }]
     };
 }
 
-async function checkForDuplicatePatient(patient) {
+async function verificarPacienteDuplicado(paciente) {
     try {
-        const response = await fetch('https://back-end-santiago.onrender.com/patient/check-duplicate', {
+        const respuesta = await fetch('https://back-end-santiago.onrender.com/patient/check-duplicate', {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(patient)
+            body: JSON.stringify(paciente)
         });
         
-        if (!response.ok) {
-            throw new Error(`Server returned ${response.status}`);
+        if (!respuesta.ok) {
+            throw new Error(`El servidor respondió con ${respuesta.status}`);
         }
         
-        const data = await response.json();
+        const datos = await respuesta.json();
         
         return {
-            isDuplicate: data.isDuplicate || false,
-            matchType: data.matchType || null,
-            existingId: data.existingId || null
+            esDuplicado: datos.isDuplicate || false,
+            tipoCoincidencia: datos.matchType || null,
+            idExistente: datos.existingId || null
         };
         
     } catch (error) {
-        console.error('Duplicate check failed:', error);
-        return { isDuplicate: false };
+        console.error('Error en verificación de duplicado:', error);
+        return { esDuplicado: false };
     }
 }
 
-async function submitPatientData(patient) {
-    const response = await fetch('https://back-end-santiago.onrender.com/patient', {
+async function enviarDatosPaciente(paciente) {
+    const respuesta = await fetch('https://back-end-santiago.onrender.com/patient', {
         method: 'POST',
         headers: { 
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         },
-        body: JSON.stringify(patient)
+        body: JSON.stringify(paciente)
     });
     
-    const data = await response.json();
+    const datos = await respuesta.json();
     
-    if (!response.ok) {
-        throw new Error(data.detail || data.message || 'Envío fallido');
+    if (!respuesta.ok) {
+        throw new Error(datos.detail || datos.message || 'Error en el envío');
     }
     
     return {
-        success: data.status === "success",
-        patientId: data.patient_id || data.insertedId,
-        message: data.message
+        exito: datos.status === "success",
+        idPaciente: datos.patient_id || datos.insertedId,
+        mensaje: datos.message
     };
 }
 
 // ==============
-// UI Functions
+// Funciones de UI
 // ==============
 
-function setButtonLoading(button, isLoading) {
-    if (isLoading) {
-        button.disabled = true;
-        button.innerHTML = '<span class="spinner"></span> Procesando...';
+function establecerBotonCargando(boton, estaCargando) {
+    if (estaCargando) {
+        boton.disabled = true;
+        boton.innerHTML = '<span class="spinner"></span> Procesando...';
     } else {
-        button.disabled = false;
-        button.textContent = 'Registrar paciente';
+        boton.disabled = false;
+        boton.textContent = 'Registrar Paciente';
     }
 }
 
-function showAlert(title, message, type = 'info') {
-    // Try SweetAlert2 first, fall back to browser alert
+function mostrarAlerta(titulo, mensaje, tipo = 'info') {
+    // Intentar con SweetAlert2 primero, luego con alerta del navegador
     if (typeof Swal !== 'undefined') {
         Swal.fire({
-            title: title,
-            text: message,
-            icon: type,
+            title: titulo,
+            text: mensaje,
+            icon: tipo,
             confirmButtonText: 'OK'
         });
     } else {
-        alert(`${title}\n\n${message}`);
+        alert(`${titulo}\n\n${mensaje}`);
     }
 }
 
-function showDuplicateAlert(result) {
-    const matchType = result.matchType === 'identifier' 
-        ? 'Número de identificación' 
-        : 'Nombres y Fecha de Nacimiento';
+function mostrarAlertaDuplicado(resultado) {
+    const tipoCoincidencia = resultado.tipoCoincidencia === 'identifier' 
+        ? 'número de identificación' 
+        : 'nombre y fecha de nacimiento';
     
-    showAlert(
-        'El paciente ya existe',
-        `Ya existe un paciente con coincidencia ${matchType}.\n\nIdentificación del paciente existente: ${result.existingId}`,
-        'awarning'
+    mostrarAlerta(
+        'Paciente ya existe',
+        `Ya existe un paciente con el mismo ${tipoCoincidencia}.\n\nID del paciente existente: ${resultado.idExistente}`,
+        'warning'
     );
 }
 
-function showSuccessAlert(patientId) {
-    showAlert(
-        'Registro exitoso',
-        `¡Paciente registrado con éxito!\n\nIdentificación del paciente: ${patientId}`,
+function mostrarAlertaExito(idPaciente) {
+    mostrarAlerta(
+        'Registro Exitoso',
+        `¡Paciente registrado correctamente!\n\nID del paciente: ${idPaciente}`,
         'success'
     );
 }
