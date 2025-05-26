@@ -1,97 +1,88 @@
 document.getElementById('patientForm').addEventListener('submit', async function(event) {
     event.preventDefault();
+    const submitButton = event.target.querySelector('button[type="submit"]');
     
-    // Get form values
-    const formData = {
-        name: document.getElementById('name').value,
-        familyName: document.getElementById('familyName').value,
-        gender: document.getElementById('gender').value,
-        birthDate: document.getElementById('birthDate').value,
-        identifierSystem: document.getElementById('identifierSystem').value,
-        identifierValue: document.getElementById('identifierValue').value,
-        cellPhone: document.getElementById('cellPhone').value,
-        email: document.getElementById('email').value,
-        address: document.getElementById('address').value,
-        city: document.getElementById('city').value,
-        postalCode: document.getElementById('postalCode').value
-    };
-
-    // Build FHIR Patient
-    const patient = {
-        resourceType: "Patient",
-        name: [{
-            use: "official",
-            given: [formData.name],
-            family: formData.familyName
-        }],
-        gender: formData.gender,
-        birthDate: formData.birthDate,
-        identifier: [{
-            system: formData.identifierSystem,
-            value: formData.identifierValue
-        }],
-        telecom: [
-            { system: "phone", value: formData.cellPhone, use: "home" },
-            { system: "email", value: formData.email, use: "home" }
-        ],
-        address: [{
-            use: "home",
-            line: [formData.address],
-            city: formData.city,
-            postalCode: formData.postalCode,
-            country: "Colombia"
-        }]
-    };
-
     try {
-        // First check for duplicates
-        const duplicateResponse = await checkDuplicatePatient(patient);
+        // Disable button during processing
+        submitButton.disabled = true;
+        submitButton.textContent = 'Procesando...';
         
-        if (duplicateResponse.isDuplicate) {
-            const matchType = duplicateResponse.matchType === 'identifier' ? 
-                'número de identificación' : 'nombre y fecha de nacimiento';
-            alert(`Paciente ya existe (coincidencia por ${matchType})`);
-            return;
+        // Get form values
+        const formData = {
+            name: document.getElementById('name').value.trim(),
+            familyName: document.getElementById('familyName').value.trim(),
+            gender: document.getElementById('gender').value,
+            birthDate: document.getElementById('birthDate').value,
+            identifierSystem: document.getElementById('identifierSystem').value,
+            identifierValue: document.getElementById('identifierValue').value.trim(),
+            cellPhone: document.getElementById('cellPhone').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            address: document.getElementById('address').value.trim(),
+            city: document.getElementById('city').value.trim(),
+            postalCode: document.getElementById('postalCode').value.trim()
+        };
+
+        // Basic validation
+        if (!formData.name || !formData.familyName || !formData.identifierValue) {
+            throw new Error('Por favor complete todos los campos requeridos');
         }
 
-        // Create patient if no duplicates
+        // Build FHIR Patient
+        const patient = {
+            resourceType: "Patient",
+            name: [{
+                use: "official",
+                given: [formData.name],
+                family: formData.familyName
+            }],
+            gender: formData.gender,
+            birthDate: formData.birthDate,
+            identifier: [{
+                system: formData.identifierSystem,
+                value: formData.identifierValue
+            }],
+            telecom: [
+                { system: "phone", value: formData.cellPhone, use: "home" },
+                { system: "email", value: formData.email, use: "home" }
+            ],
+            address: [{
+                use: "home",
+                line: [formData.address],
+                city: formData.city,
+                postalCode: formData.postalCode,
+                country: "Colombia"
+            }]
+        };
+
+        // Create patient
         const response = await fetch('https://back-end-santiago.onrender.com/patient', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(patient)
         });
-        
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Error del servidor');
+        }
+
         const result = await response.json();
         
         if (result.status === "exists") {
-            alert(`Paciente ya existe en el sistema (ID: ${result.existingId})`);
+            const matchType = result.matchType === 'identifier' ? 
+                'número de identificación' : 'nombre y fecha de nacimiento';
+            alert(`⚠️ Paciente ya existe (coincidencia por ${matchType})\nID: ${result.existingId}`);
         } else if (result.status === "success") {
-            alert(`Paciente creado exitosamente! ID: ${result.insertedId}`);
+            alert(`✅ Paciente creado exitosamente!\nID: ${result.insertedId}`);
             document.getElementById('patientForm').reset();
         } else {
-            alert(`Error: ${result.message}`);
+            throw new Error(result.message || 'Error desconocido');
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('Error al procesar la solicitud');
+        alert(`❌ Error: ${error.message}`);
+    } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = 'Registrar Paciente';
     }
 });
-
-async function checkDuplicatePatient(patient) {
-    const identifier = patient.identifier[0];
-    const name = patient.name[0];
-    
-    const response = await fetch('https://back-end-santiago.onrender.com/patient/check-duplicate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            family_name: name.family,
-            given_name: name.given[0],
-            birth_date: patient.birthDate,
-            identifier_system: identifier.system,
-            identifier_value: identifier.value
-        })
-    });
-    
-    return await response.json();
-}
