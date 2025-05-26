@@ -24,8 +24,8 @@
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 500px;
+            width: 90%;
+            max-width: 600px;
             margin-top: 20px;
         }
         
@@ -85,7 +85,7 @@
         }
         
         button:hover {
-            background-color: #2980b9;
+            background-color: #7d29b9;
         }
         
         button:disabled {
@@ -126,74 +126,74 @@
 </head>
 <body>
     <div class="container">
-        <h1>Patient Registration</h1>
+        <h1>Registro de un paciente</h1>
         <form id="patientForm">
             <div class="form-group">
-                <label for="name" class="required-field">First Name</label>
+                <label for="name" class="required-field">Nombres</label>
                 <input type="text" id="name" name="name" required>
             </div>
             
             <div class="form-group">
-                <label for="familyName" class="required-field">Last Name</label>
+                <label for="familyName" class="required-field">Apellidos</label>
                 <input type="text" id="familyName" name="familyName" required>
             </div>
             
             <div class="form-group">
-                <label for="gender" class="required-field">Gender</label>
+                <label for="gender" class="required-field">Sexo</label>
                 <select id="gender" name="gender" required>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                    <option value="unknown">Unknown</option>
+                    <option value="male">Masculino</option>
+                    <option value="female">Femenino</option>
+                    <option value="other">Otro</option>
+                    <option value="unknown">Desconocido</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label for="birthDate" class="required-field">Date of Birth</label>
+                <label for="birthDate" class="required-field">Fecha de Nacimiento</label>
                 <input type="date" id="birthDate" name="birthDate" required>
             </div>
             
             <div class="form-group">
                 <label for="identifierSystem" class="required-field">ID Type</label>
                 <select id="identifierSystem" name="identifierSystem" required>
-                    <option value="http://cedula">National ID</option>
-                    <option value="http://pasaporte">Passport</option>
-                    <option value="http://tarjeta-identidad">Identity Card</option>
+                    <option value="http://cedula">Cédula de Ciudadania</option>
+                    <option value="http://pasaporte">Pasaporte</option>
+                    <option value="http://tarjeta-identidad">Tarjeta de identidad</option>
                 </select>
             </div>
             
             <div class="form-group">
-                <label for="identifierValue" class="required-field">ID Number</label>
+                <label for="identifierValue" class="required-field">Número de identificación</label>
                 <input type="text" id="identifierValue" name="identifierValue" required>
             </div>
             
             <div class="form-group">
-                <label for="cellPhone" class="required-field">Phone Number</label>
+                <label for="cellPhone" class="required-field">Número de teléfono</label>
                 <input type="tel" id="cellPhone" name="cellPhone" required>
             </div>
             
             <div class="form-group">
-                <label for="email">Email</label>
+                <label for="email">Correo electrónico</label>
                 <input type="email" id="email" name="email">
             </div>
             
             <div class="form-group">
-                <label for="address">Address</label>
+                <label for="address">Dirección de residencia</label>
                 <input type="text" id="address" name="address">
             </div>
             
             <div class="form-group">
-                <label for="city">City</label>
+                <label for="city">Ciudad de residencia</label>
                 <input type="text" id="city" name="city">
             </div>
             
             <div class="form-group">
-                <label for="postalCode">Postal Code</label>
+                <label for="postalCode">Código Postal/label>
                 <input type="text" id="postalCode" name="postalCode">
             </div>
             
             <button type="submit">
-                <span class="button-text">Register Patient</span>
+                <span class="button-text">Resgistrar Paciente</span>
             </button>
         </form>
     </div>
