@@ -14,7 +14,6 @@
             height: 100vh;
             margin: 0;
             padding-top: 20px;
-            padding-right: 20px;
         }
         .container {
             background: white;
@@ -24,9 +23,6 @@
             width: 100%;
             max-width: 400px;
             margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
         h1 {
             text-align: center;
@@ -34,34 +30,37 @@
         }
         form {
             width: 100%;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
         label {
             font-weight: bold;
-            align-self: flex-start;
+            display: block;
             margin-top: 10px;
         }
         input, select {
-            width: 90%;
+            width: 95%;
             padding: 8px;
             margin-top: 5px;
             border: 1px solid #ccc;
             border-radius: 5px;
         }
         button {
-            width: 90%;
+            width: 100%;
             padding: 10px;
-            background-color: #a6a6ed;
+            background-color: #4CAF50;
             color: white;
             border: none;
             border-radius: 5px;
             cursor: pointer;
             margin-top: 15px;
+            font-weight: bold;
         }
         button:hover {
-            background-color: #8585d6;
+            background-color: #45a049;
+        }
+        .error-message {
+            color: red;
+            font-size: 0.9em;
+            margin-top: 5px;
         }
     </style>
 </head>
@@ -71,10 +70,10 @@
         <form id="patientForm">
             <label for="name">Nombre:</label>
             <input type="text" id="name" name="name" required>
-
+            
             <label for="familyName">Apellido:</label>
             <input type="text" id="familyName" name="familyName" required>
-
+            
             <label for="gender">Género:</label>
             <select id="gender" name="gender" required>
                 <option value="male">Masculino</option>
@@ -82,35 +81,36 @@
                 <option value="other">Otro</option>
                 <option value="unknown">Desconocido</option>
             </select>
-
+            
             <label for="birthDate">Fecha de Nacimiento:</label>
             <input type="date" id="birthDate" name="birthDate" required>
-
+            
             <label for="identifierSystem">Tipo de documento:</label>
             <select id="identifierSystem" name="identifierSystem" required>
                 <option value="http://cedula">Cédula de ciudadanía</option>
                 <option value="http://pasaporte">Pasaporte</option>
+                <option value="http://tarjeta-identidad">Tarjeta de identidad</option>
             </select>
-
+            
             <label for="identifierValue">Número de documento:</label>
             <input type="text" id="identifierValue" name="identifierValue" required>
-
+            
             <label for="cellPhone">Teléfono celular:</label>
-            <input type="text" id="cellPhone" name="cellPhone" required>
-
+            <input type="tel" id="cellPhone" name="cellPhone" required>
+            
             <label for="email">Correo electrónico:</label>
             <input type="email" id="email" name="email" required>
-
+            
             <label for="address">Dirección:</label>
             <input type="text" id="address" name="address" required>
-
+            
             <label for="city">Ciudad:</label>
             <input type="text" id="city" name="city" required>
-
+            
             <label for="postalCode">Código postal:</label>
             <input type="text" id="postalCode" name="postalCode" required>
-
-            <button type="submit">Enviar</button>
+            
+            <button type="submit">Registrar Paciente</button>
         </form>
     </div>
     <script src="app.js"></script>
